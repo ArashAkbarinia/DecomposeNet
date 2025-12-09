@@ -81,19 +81,8 @@ def main(args):
     if args.cuda:
         model.cuda()
 
-    if args.load_encoder is not None:
-        params_to_optimize = [
-            {'params': [p for p in model.decoder.parameters() if
-                        p.requires_grad]},
-            {'params': [p for p in model.fc.parameters() if
-                        p.requires_grad]},
-        ]
-        optimizer = optim.Adam(params_to_optimize, lr=lr)
-    else:
-        optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.StepLR(
-        optimizer, int(args.epochs / 3), 0.5
-    )
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, int(args.epochs / 3), 0.5)
 
     if args.resume is not None:
         checkpoint = torch.load(args.resume, map_location='cpu')
@@ -216,10 +205,10 @@ def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path,
             logging.info(
                 'Train Epoch: {epoch} [{batch:5d}/{total_batch} '
                 '({percent:2d}%)]   time: {time:3.2f}   {loss}'
-                    .format(epoch=epoch, batch=batch_idx * len(data),
-                            total_batch=max_len * len(data),
-                            percent=int(100. * batch_idx / max_len),
-                            time=time.time() - start_time, loss=loss_string))
+                .format(epoch=epoch, batch=batch_idx * len(data),
+                        total_batch=max_len * len(data),
+                        percent=int(100. * batch_idx / max_len),
+                        time=time.time() - start_time, loss=loss_string))
             start_time = time.time()
             for key in latest_losses:
                 losses[key + '_train'] = 0
