@@ -7,7 +7,7 @@ import numpy as np
 
 from torchvision import datasets as tdatasets
 
-from kernelphysiology.utils import path_utils
+import path_utils
 
 
 class ImageFolder(tdatasets.ImageFolder):
