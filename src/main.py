@@ -166,7 +166,7 @@ def main(args):
                 'state_dict': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
                 'scheduler': scheduler.state_dict(),
-                'arch': {'k': args.k, 'hidden': args.hidden}
+                'arch': {'k': args.k, 'hidden': args.hidden, 'stride': args.stride}
             },
             save_path
         )
