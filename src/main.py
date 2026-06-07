@@ -149,8 +149,7 @@ def main(args):
             epoch, model, train_loader, optimizer, args.cuda, args.log_interval,
             save_path, args
         )
-        test_losses = test_net(epoch, model, test_loader, args.cuda, save_path,
-                               args)
+        test_losses = test_net(epoch, model, test_loader, args.cuda, save_path, args)
         for k in train_losses.keys():
             name = k.replace('_train', '')
             train_name = k
@@ -172,8 +171,7 @@ def main(args):
         )
 
 
-def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path,
-          args):
+def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path, args):
     model.train()
     loss_dict = model.latest_losses()
     losses = {k + '_train': 0 for k, v in loss_dict.items()}
@@ -200,8 +198,7 @@ def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path,
         if batch_idx % log_interval == 0:
             for key in latest_losses:
                 losses[key + '_train'] /= log_interval
-            loss_string = ' '.join(
-                ['{}: {:.6f}'.format(k, v) for k, v in losses.items()])
+            loss_string = ' '.join(['{}: {:.6f}'.format(k, v) for k, v in losses.items()])
             logging.info(
                 'Train Epoch: {epoch} [{batch:5d}/{total_batch} '
                 '({percent:2d}%)]   time: {time:3.2f}   {loss}'
@@ -254,8 +251,7 @@ def test_net(epoch, model, test_loader, cuda, save_path, args):
 
     for key in losses:
         losses[key] /= (i * len(data))
-    loss_string = ' '.join(
-        ['{}: {:.6f}'.format(k, v) for k, v in losses.items()])
+    loss_string = ' '.join(['{}: {:.6f}'.format(k, v) for k, v in losses.items()])
     logging.info('====> Test set losses: {}'.format(loss_string))
     return losses
 
