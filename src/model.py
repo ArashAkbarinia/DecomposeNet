@@ -50,7 +50,7 @@ class HueLoss(torch.nn.Module):
 
 class VQ_CVAE(nn.Module):
     def __init__(self, d, k=10, kl=None, vq_coef=1, commit_coef=0.5,
-                 in_chns=3, colour_space='rgb', out_chns=3):
+                 in_chns=3, colour_space='rgb', out_chns=3, stride=2):
         super(VQ_CVAE, self).__init__()
 
         if out_chns is None:
@@ -67,11 +67,12 @@ class VQ_CVAE(nn.Module):
         self.colour_space = colour_space
         self.hue_loss = HueLoss()
 
+        padding = 1
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_chns, d, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(in_chns, d, kernel_size=4, stride=stride, padding=padding),
             nn.BatchNorm2d(d),
             nn.ReLU(inplace=True),
-            nn.Conv2d(d, d, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(d, d, kernel_size=4, stride=stride, padding=padding),
             nn.BatchNorm2d(d),
             nn.ReLU(inplace=True),
             ResBlock(d, d, bn=True),
@@ -83,10 +84,10 @@ class VQ_CVAE(nn.Module):
             ResBlock(kl, d),
             nn.BatchNorm2d(d),
             ResBlock(d, d),
-            nn.ConvTranspose2d(d, d, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(d, d, kernel_size=4, stride=stride, padding=padding),
             nn.BatchNorm2d(d),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(d, out_chns, kernel_size=4, stride=2, padding=1)
+            nn.ConvTranspose2d(d, out_chns, kernel_size=4, stride=stride, padding=padding)
         )
         self.vq_coef = vq_coef
         self.commit_coef = commit_coef
@@ -112,21 +113,21 @@ class VQ_CVAE(nn.Module):
         return torch.tanh(self.decoder(x))
 
     def forward(self, x):
+        in_shape = x.shape
         z_e = self.encode(x)
         self.f = z_e.shape[-1]
         z_q, argmin = self.emb(z_e, weight_sg=True)
         emb, _ = self.emb(z_e.detach())
-        return self.decode(z_q), z_e, emb, argmin
+        y = self.decode(z_q)
+        y = F.interpolate(y, in_shape[2:])
+        return y, z_e, emb, argmin
 
     def sample(self, size):
+        sample = torch.tensor(
+            torch.randn(size, self.kl, self.f, self.f), requires_grad=False
+        )
         if self.cuda():
-            sample = torch.tensor(
-                torch.randn(size, self.kl, self.f, self.f), requires_grad=False
-            ).cuda()
-        else:
-            sample = torch.tensor(
-                torch.randn(size, self.kl, self.f, self.f), requires_grad=False
-            )
+            sample = sample.cuda()
         emb, _ = self.emb(sample)
         return self.decode(emb.view(size, self.kl, self.f, self.f)).cpu()
 
@@ -155,8 +156,7 @@ class VQ_CVAE(nn.Module):
             self.mse = F.mse_loss(recon_x, x)
 
         self.vq_loss = torch.mean(torch.norm((emb - z_e.detach()) ** 2, 2, 1))
-        self.commit_loss = torch.mean(
-            torch.norm((emb.detach() - z_e) ** 2, 2, 1))
+        self.commit_loss = torch.mean(torch.norm((emb.detach() - z_e) ** 2, 2, 1))
 
         return self.mse + self.vq_coef * self.vq_loss + self.commit_coef * self.commit_loss
 

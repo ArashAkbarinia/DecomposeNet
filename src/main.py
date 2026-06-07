@@ -76,7 +76,7 @@ def main(args):
     args.colour_space = out_colour_space
 
     model = models[args.dataset][args.model](
-        hidden, k=k, kl=args.kl, colour_space=args.colour_space
+        hidden, k=k, kl=args.kl, colour_space=args.colour_space, stride=args.stride
     )
     if args.cuda:
         model.cuda()

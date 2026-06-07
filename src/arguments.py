@@ -20,6 +20,8 @@ def parse_arguments(args):
                               help='number of input channels')
     model_parser.add_argument('--hidden', type=int,
                               help='number of hidden channels')
+    model_parser.add_argument('--stride', type=int, default=2,
+                              help='number of strides in conv to reduce spatial resolution')
     model_parser.add_argument('-k', '--k', type=int, dest='k',
                               help='number of vectors in embedding space')
     model_parser.add_argument('-kl', '--kl', type=int, dest='kl',
@@ -60,7 +62,7 @@ def parse_arguments(args):
         help='The path to the validation directory (default: None)'
     )
     training_parser.add_argument(
-        '--epochs', type=int, default=90, metavar='N',
+        '--epochs', type=int, default=30, metavar='N',
         help='number of epochs to train (default: 10)'
     )
     training_parser.add_argument(
