@@ -7,7 +7,7 @@ import sys
 
 import cv2
 
-from . import normalisations
+import normalisations
 
 yog_from_rgb = np.array(
     [[+0.25, +0.50, +0.25],

@@ -83,7 +83,7 @@ def save_checkpoint(model, save_path):
     epoch = model['epoch']
     os.makedirs(os.path.join(save_path, 'checkpoints'), exist_ok=True)
     weights_path = os.path.join(save_path, 'checkpoints', f'model_{epoch}.pth')
-    #torch.save(model['state_dict'], weights_path)
+    # torch.save(model['state_dict'], weights_path)
     resume_path = os.path.join(save_path, 'checkpoints', 'last_epoch.pth')
     torch.save(model, resume_path)
 
@@ -121,6 +121,6 @@ def inv_normalise_tensor(tensor, mean, std):
     tensor = tensor.clone()
     # inverting the normalisation for each channel
     for i in range(tensor.shape[1]):
-        tensor[:, i, ] = (tensor[:, i, ] * std[i]) + mean[i]
+        tensor[:, i] = (tensor[:, i,] * std[i]) + mean[i]
     tensor = tensor.clamp(0, 1)
     return tensor
