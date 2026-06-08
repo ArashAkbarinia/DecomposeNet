@@ -124,3 +124,11 @@ def inv_normalise_tensor(tensor, mean, std):
         tensor[:, i] = (tensor[:, i,] * std[i]) + mean[i]
     tensor = tensor.clamp(0, 1)
     return tensor
+
+
+def normalise_tensor(tensor, mean, std):
+    tensor = tensor.clone()
+    # the normalisation for each channel
+    for i in range(tensor.shape[1]):
+        tensor[:, i] = (tensor[:, i,] - mean[i]) / std[i]
+    return tensor

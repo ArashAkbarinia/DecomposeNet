@@ -42,7 +42,7 @@ class ImageFolder(tdatasets.ImageFolder):
         if self.target_transform is not None:
             class_target = self.target_transform(class_target)
 
-        return imgin, imgout, path
+        return imgin, imgout, class_target
 
 
 class OneFolder(tdatasets.VisionDataset):
