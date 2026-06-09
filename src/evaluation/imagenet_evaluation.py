@@ -309,7 +309,7 @@ def run_image_classification(
 
     # --- Save results to CSV ---
     # One row per sample: ground_truth, prediction, correct (0 or 1)
-    csv_path = os.path.join(args.out_dir, "classification_results.csv")
+    csv_path = os.path.join(args.out_dir, f"{args.classification_model}_imagenet.csv")
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["ground_truth", "prediction", "correct"])
