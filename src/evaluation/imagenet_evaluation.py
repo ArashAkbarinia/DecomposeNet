@@ -16,6 +16,15 @@ from transformations import cv2_preprocessing, cv2_transforms
 from transformations import colour_spaces as cpu_colour
 from transformations import colour_spaces_gpu as gpu_colour
 
+# disabling multi-threading
+os.environ["OMP_NUM_THREADS"] = "2"
+os.environ["MKL_NUM_THREADS"] = "2"
+os.environ["OPENBLAS_NUM_THREADS"] = "2"
+os.environ["NUMEXPR_NUM_THREADS"] = "2"
+torch.set_num_threads(2)
+torch.set_num_interop_threads(2)
+cv2.setNumThreads(2)
+
 
 def parse_arguments(args):
     """
