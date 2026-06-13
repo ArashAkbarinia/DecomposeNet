@@ -242,15 +242,13 @@ def run_quality_metrics(
     with torch.no_grad():
 
         for batch_idx, (input_images, target_images, category) in enumerate(data_loader):
+            print('running batch:', batch_idx)
             input_images = input_images.to(device)
 
             reconstructions = model(input_images)[0]
             reconstructions = reconstructions.detach().cpu()
 
             for image_idx in range(reconstructions.shape[0]):
-                if batch_idx % 1000 == 0:
-                    print(batch_idx, category)
-
                 reference_rgb = target_images[image_idx].unsqueeze(0)
 
                 reference_rgb = vae_util.inv_normalise_tensor(
@@ -327,7 +325,7 @@ def run_quality_metrics(
                     np.max(delta_e)
                 ])
 
-            if batch_idx % 10000 == 0:
+            if batch_idx % 2 == 0:
                 save_metrics(
                     args.out_dir,
                     all_ssim,
