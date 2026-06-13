@@ -241,22 +241,15 @@ def run_quality_metrics(
 
     with torch.no_grad():
 
-        for batch_idx, (
-                input_images,
-                target_images,
-                image_paths
-        ) in enumerate(data_loader):
+        for batch_idx, (input_images, target_images, category) in enumerate(data_loader):
             input_images = input_images.to(device)
 
             reconstructions = model(input_images)[0]
             reconstructions = reconstructions.detach().cpu()
 
             for image_idx in range(reconstructions.shape[0]):
-
-                image_path = image_paths[image_idx]
-
                 if batch_idx % 1000 == 0:
-                    print(batch_idx, image_path)
+                    print(batch_idx, category)
 
                 reference_rgb = target_images[image_idx].unsqueeze(0)
 
@@ -334,7 +327,7 @@ def run_quality_metrics(
                     np.max(delta_e)
                 ])
 
-            if batch_idx > 0 and batch_idx % 10000 == 0:
+            if batch_idx % 10000 == 0:
                 save_metrics(
                     args.out_dir,
                     all_ssim,
