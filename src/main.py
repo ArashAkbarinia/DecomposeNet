@@ -75,8 +75,10 @@ def main(args):
     out_colour_space = args.colour_space[4:]
     args.colour_space = out_colour_space
 
+    classification_head = 1000 if args.classification else None
     model = models[args.dataset][args.model](
-        hidden, k=k, kl=args.kl, colour_space=args.colour_space, stride=args.stride
+        hidden, k=k, kl=args.kl, colour_space=args.colour_space,
+        stride=args.stride, classification_head=classification_head
     )
     if args.cuda:
         model.cuda()
@@ -180,14 +182,16 @@ def train(epoch, model, train_loader, optimizer, cuda, log_interval, save_path, 
     for batch_idx, loader_data in enumerate(train_loader):
         data = loader_data[0]
         target = loader_data[1]
+        class_target = loader_data[2]
         max_len = len(train_loader)
         target = target.cuda()
+        class_target = class_target.cuda()
 
         data = data.cuda()
         optimizer.zero_grad()
         outputs = model(data)
 
-        loss = model.loss_function(target, *outputs)
+        loss = model.loss_function(target, class_target, *outputs)
         loss.backward()
         optimizer.step()
         latest_losses = model.latest_losses()

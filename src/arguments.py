@@ -89,5 +89,7 @@ def parse_arguments(args):
                                 help='saved folder')
     logging_parser.add_argument('--data-format', default='json',
                                 help='in which format to save the data')
+    training_parser.add_argument('--classification', action='store_true',
+                                 default=False, help='train on classification as well')
 
     return parser.parse_args(args)

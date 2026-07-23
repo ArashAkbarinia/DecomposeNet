@@ -50,7 +50,7 @@ class HueLoss(torch.nn.Module):
 
 class VQ_CVAE(nn.Module):
     def __init__(self, d, k=10, kl=None, vq_coef=1, commit_coef=0.5,
-                 in_chns=3, colour_space='rgb', out_chns=3, stride=2):
+                 in_chns=3, colour_space='rgb', out_chns=3, stride=2, classification_head=None):
         super(VQ_CVAE, self).__init__()
 
         if out_chns is None:
@@ -80,6 +80,21 @@ class VQ_CVAE(nn.Module):
             ResBlock(d, kl, bn=True),
             nn.BatchNorm2d(kl),
         )
+        if classification_head is not None and classification_head > 0:
+            # FIXME: assuming output 224
+            if stride == 2:
+                w = 56
+            elif stride == 3:
+                w = 25
+            elif stride == 4:
+                w = 14
+            elif stride == 5:
+                w = 9
+            h = w
+            in_units = d * w * h
+            self.classification_head = nn.Linear(in_units, classification_head)
+        else:
+            self.classification_head = None
         self.decoder = nn.Sequential(
             ResBlock(kl, d),
             nn.BatchNorm2d(d),
@@ -118,9 +133,12 @@ class VQ_CVAE(nn.Module):
         self.f = z_e.shape[-1]
         z_q, argmin = self.emb(z_e, weight_sg=True)
         emb, _ = self.emb(z_e.detach())
+        class_out = None
+        if self.classification_head is not None:
+            class_out = self.classification_head(z_q)
         y = self.decode(z_q)
         y = F.interpolate(y, in_shape[2:])
-        return y, z_e, emb, argmin
+        return y, z_e, emb, argmin, class_out
 
     def sample(self, size):
         sample = torch.tensor(
@@ -148,7 +166,7 @@ class VQ_CVAE(nn.Module):
         emb = torch.tensor(sample, dtype=torch.float32).unsqueeze(dim=0)
         return self.decode(emb).cpu()
 
-    def loss_function(self, x, recon_x, z_e, emb, argmin):
+    def loss_function(self, x, class_target, recon_x, z_e, emb, argmin, class_out):
         if self.colour_space == 'hsv':
             self.mse = F.mse_loss(recon_x[:, 1:], x[:, 1:])
             self.mse += self.hue_loss(recon_x[:, 0], x[:, 0])
@@ -158,7 +176,10 @@ class VQ_CVAE(nn.Module):
         self.vq_loss = torch.mean(torch.norm((emb - z_e.detach()) ** 2, 2, 1))
         self.commit_loss = torch.mean(torch.norm((emb.detach() - z_e) ** 2, 2, 1))
 
-        return self.mse + self.vq_coef * self.vq_loss + self.commit_coef * self.commit_loss
+        class_loss = 0
+        if class_out is not None:
+            class_loss = F.cross_entropy(class_out, class_target)
+        return self.mse + self.vq_coef * self.vq_loss + self.commit_coef * self.commit_loss + class_loss
 
     def latest_losses(self):
         return {'mse': self.mse, 'vq': self.vq_loss,
