@@ -135,9 +135,7 @@ class VQ_CVAE(nn.Module):
         emb, _ = self.emb(z_e.detach())
         class_out = None
         if self.classification_head is not None:
-            class_out = self.classification_head(
-                class_out=self.classification_head(torch.flatten(z_q, start_dim=1))
-            )
+            class_out = self.classification_head(torch.flatten(z_q, start_dim=1))
         y = self.decode(z_q)
         y = F.interpolate(y, in_shape[2:])
         return y, z_e, emb, argmin, class_out
