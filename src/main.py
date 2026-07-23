@@ -240,10 +240,12 @@ def test_net(epoch, model, test_loader, cuda, save_path, args):
         for i, loader_data in enumerate(test_loader):
             data = loader_data[0]
             target = loader_data[1]
+            class_target = loader_data[2]
             target = target.cuda()
+            class_target = class_target.cuda()
             data = data.cuda()
             outputs = model(data)
-            model.loss_function(target, *outputs)
+            model.loss_function(target, class_target, *outputs)
             latest_losses = model.latest_losses()
             for key in latest_losses:
                 losses[key + '_test'] += float(latest_losses[key])
