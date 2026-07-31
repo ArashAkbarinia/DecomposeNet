@@ -127,7 +127,7 @@ def create_model(model_path, device):
         in_chns=3
     )
 
-    model.load_state_dict(checkpoint["state_dict"])
+    model.load_state_dict(checkpoint["state_dict"], strict=False)
     model.to(device)
     model.eval()
 
